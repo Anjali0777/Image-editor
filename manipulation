@@ -1,0 +1,120 @@
+from PIL import Image, ImageFilter,ImageDraw
+import os
+
+
+def resize_image(img, width, height):
+    return img.resize((width, height))
+
+
+def crop_image(img, left, upper, right, lower):
+    return img.crop((left, upper, right, lower))
+
+
+def blur_image(img, level, side='whole'):
+    if side == 'left':
+        # Dimensions for left side blur
+        width, height = img.size
+        box = (0, 0, width // 2, height)
+        left_side = img.crop(box)
+        blurred_left_side = left_side.filter(ImageFilter.GaussianBlur(radius=level))
+        img.paste(blurred_left_side, (0, 0))
+    elif side == 'right':
+        # Dimensions for right side blur
+        width, height = img.size
+        box = (width // 2, 0, width, height)
+        right_side = img.crop(box)
+        blurred_right_side = right_side.filter(ImageFilter.GaussianBlur(radius=level))
+        img.paste(blurred_right_side, (width // 2, 0))
+    else:
+        # Default whole blur
+        img = img.filter(ImageFilter.GaussianBlur(radius=level))
+    return img
+
+
+def rotate_image(img, angle):
+    return img.rotate(angle)
+
+
+def convert_to_grayscale(img):
+    return img.convert('L')
+
+
+def validate_image_file(image_file):
+
+    if not os.path.isfile(image_file):
+        print("Error: The entered file does not exist.")
+        return False
+    return True
+
+    
+import img_manipulation
+from PIL import Image, ImageFilter, ImageDraw
+
+
+def main():
+
+    while True:
+        image_file = input("Enter the name of an image file: ")
+        if img_manipulation.validate_image_file(image_file):
+            break
+
+    img = Image.open(image_file)
+
+    continue_editing = True
+
+    while continue_editing:
+
+        print("Select a manipulation:")
+        print("1. Resize")
+        print("2. Crop")
+        print("3. Blur")
+        print("4. Rotate")
+        print("5. Turn to grayscale")
+        print("6. Done Editing")
+        manipulation = int(input("Enter the number of your selection: "))
+        if manipulation == 1:
+            # Resize the image
+            width = int(input("Enter the desired width: "))
+            if width < 0 or width > 50:
+                print("Invalid entry.")
+                break
+            height = int(input("Enter the desired height: "))
+            if height < 0 or height > 50:
+                print("Invalid entry. ")
+                break
+            img = img_manipulation.resize_image(img, width, height)
+        elif manipulation == 2:
+            # Crop the image
+            left = int(input("Enter the left coordinate: "))
+            upper = int(input("Enter the upper coordinate: "))
+            right = int(input("Enter the right coordinate: "))
+            lower = int(input("Enter the lower coordinate: "))
+            img = img_manipulation.crop_image(img, left, upper, right, lower)
+        elif manipulation == 3:
+            # Blur the image
+            blur_level = int(input("Enter the level of blur(1-10): "))
+            side_to_blur = input("Enter the side to blur ('left', 'right', or 'whole'): ").lower()
+            if side_to_blur not in ["left", "right", "whole"]:
+                print("Invalid side. Using 'whole' by default.")
+                side_to_blur = "whole"
+            img = img_manipulation.blur_image(img, blur_level, side=side_to_blur)
+        elif manipulation == 4:
+            # Rotate the image
+            angle = int(input("Enter the rotation angle: "))
+            img = img_manipulation.rotate_image(img, angle)
+        elif manipulation == 5:
+            # Convert to grayscale image
+            img = img_manipulation.convert_to_grayscale(img)
+
+        elif manipulation == 6:
+            # Stop editing
+            continue_editing = False
+        else:
+            print("Invalid selection.")
+
+    # Save the final edited image
+    img.save("final_image.jpg")
+    print("Image editing completed.")
+
+
+main()
